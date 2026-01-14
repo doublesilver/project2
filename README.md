@@ -1,125 +1,212 @@
-# AI 기반 채용 공고 분석 및 매칭 플랫폼
+# 🤖 AI 기반 스마트 채용 공고 매칭 플랫폼
+"Data Engineering부터 AI Service까지, End-to-End 시스템 구축"
 
-## 🚀 프로젝트 소개
+💡 **"단순한 채용 게시판이 아닙니다."** Scrapy로 수집한 데이터를 LLM(Gemini)이 분석하고, 최적의 인재를 매칭해주는 지능형 채용 어시스턴트입니다.
 
-이 프로젝트는 신입 개발자를 위한 이상적인 기술 스택 포트폴리오를 목표로, AI, 고성능 백엔드, 데이터 엔지니어링 역량을 통합하여 하나의 완성된 시스템을 구축합니다. 채용 공고 데이터를 수집하고, 이를 기반으로 AI 서비스를 제공하며, 현대적인 백엔드 API를 통해 기능을 노출하는 'AI 기반 채용 공고 분석 및 매칭 플랫폼'입니다.
+<div align="center">
+
+📚 **API Documentation**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) (Local Only)
+
+</div>
+
+---
+
+## 📑 목차
+- [프로젝트 개요](#-프로젝트-개요)
+- [주요 기능](#-주요-기능)
+- [기술 스택](#-기술-스택)
+- [시스템 아키텍처](#-시스템-아키텍처)
+- [API 엔드포인트](#-api-엔드포인트)
+- [설치 및 실행](#-설치-및-실행)
+- [향후 개선 계획](#-향후-개선-계획)
+
+---
+
+## 📋 프로젝트 개요
+| 항목 | 내용 |
+|------|------|
+| **프로젝트명** | AI Job Matcher (지능형 채용 분석 플랫폼) |
+| **핵심 목표** | 데이터 수집(ETL) → API 서빙 → AI 분석으로 이어지는 Full-Cycle 백엔드 역량 증명 |
+| **주요 특징** | 자동화된 크롤링, RAG 기반 매칭, JWT 보안 시스템 |
+| **개발 환경** | Python 3.11, Windows/Linux |
+
+---
 
 ## ✨ 주요 기능
 
-### 1. 데이터 수집 (Data Pipeline)
-*   **역할**: 주기적으로 채용 사이트(예: `python.org/jobs`)의 데이터를 수집(크롤링)하고 전처리하여 PostgreSQL 데이터베이스에 적재합니다.
-*   **기술**: `Scrapy`, `BeautifulSoup4`, `SQLAlchemy`, `psycopg2-binary`
+```mermaid
+graph TD
+    Root((AI Job Matcher))
+    
+    Root --> A["데이터 파이프라인"]
+    A --> A1["Scrapy 크롤러"]
+    A --> A2["채용 사이트 자동 수집"]
+    A --> A3["데이터 전처리 및 정제"]
+    A --> A4["PostgreSQL 적재"]
 
-### 2. 핵심 API 서버 (Core API Server)
-*   **역할**: 데이터 파이프라인이 수집한 데이터를 외부(프론트엔드 등)에 제공하고, 사용자 관리 및 인증을 담당합니다.
-*   **기술**: `FastAPI`, `PostgreSQL`, `SQLAlchemy ORM`, `JWT 인증`, `passlib`, `python-jose`, `uvicorn`
+    Root --> B["핵심 API 서버"]
+    B --> B1["FastAPI 고성능 서버"]
+    B --> B2["JWT 인증 / 인가"]
+    B --> B3["사용자 이력서 관리"]
+    B --> B4["RESTful 설계"]
 
-### 3. AI 지능형 서비스 (AI Service)
-*   **역할**: Gemini AI를 활용하여 채용 공고 분석 및 매칭 기능을 제공합니다.
-*   **기술**: `Google Gemini API (google-genai)`
-
-## 🛠️ 기술 스택
-
-*   **언어**: Python 3.x
-*   **웹 프레임워크**: FastAPI
-*   **데이터베이스**: PostgreSQL
-*   **ORM**: SQLAlchemy
-*   **크롤링**: Scrapy
-*   **AI/ML**: Google Gemini API (google-genai)
-*   **인증**: JWT (JSON Web Tokens)
-*   **비밀번호 해싱**: bcrypt (passlib)
-*   **환경 변수 관리**: python-dotenv
-
-## 🚀 설치 및 실행 방법
-
-### 1. 필수 요구사항
-*   Python 3.x 설치
-*   PostgreSQL 데이터베이스 설치 및 실행
-
-### 2. 프로젝트 클론 및 디렉토리 이동
-```bash
-# 이 프로젝트는 C:\toy\ai-job-matcher 에 생성되어 있습니다.
-cd C:\toy\ai-job-matcher
+    Root --> C["AI 인텔리전스"]
+    C --> C1["Google Gemini Pro 연동"]
+    C --> C2["공고 자동 요약"]
+    C --> C3["예상 면접 질문 생성"]
+    C --> C4["이력서-공고 매칭 점수"]
 ```
 
-### 3. 가상 환경 설정 및 활성화
-```bash
-python -m venv venv
-.array\venv\Scripts\activate
+### 1. 🕷️ 자동화된 데이터 수집 (ETL)
+- **Scrapy 프레임워크**를 활용하여 python.org/jobs 등 주요 채용 사이트 데이터 크롤링
+- 비정형 HTML 데이터를 구조화된 데이터(Schema)로 변환하여 DB 적재
+
+### 2. 🧠 AI 기반 분석 서비스 (GenAI)
+- **공고 요약**: 긴 채용 공고(JD)를 3줄 핵심 요약으로 변환
+- **면접 코칭**: JD를 분석하여 "나올 법한 기술 면접 질문 5가지" 자동 생성
+- **스마트 매칭**: 사용자 이력서와 공고 간의 적합도(Fit Score) 분석 및 추천
+
+### 3. 🔐 안전한 사용자 관리
+- **JWT (JSON Web Token)** 기반의 Stateless 인증 시스템 구축
+- **bcrypt 알고리즘**을 사용한 비밀번호 단방향 암호화 저장
+
+---
+
+## 🛠 기술 스택
+
+### Backend & Core
+| 기술 | 용도 | 선택 이유 |
+|------|------|----------|
+| **Python 3.11** | 주 언어 | 풍부한 라이브러리 생태계 및 AI 연동 용이성 |
+| **FastAPI** | Web Framework | Flask/Django 대비 압도적인 성능 및 비동기 지원 |
+| **SQLAlchemy** | ORM | Python 객체와 관계형 데이터베이스 매핑 |
+| **Pydantic** | Validation | 데이터 유효성 검사 및 설정 관리 |
+
+### Data & AI
+| 기술 | 용도 | 선택 이유 |
+|------|------|----------|
+| **PostgreSQL** | Database | 대용량 데이터 처리 및 안정성 |
+| **Scrapy** | Crawler | 비동기 기반의 고성능 웹 크롤링 프레임워크 |
+| **Gemini API** | LLM | 최신 성능의 멀티모달 AI 모델 활용 |
+
+---
+
+## 🏗 시스템 아키텍처
+
+```mermaid
+flowchart LR
+    subgraph External["🌐 External Sources"]
+        JobSite["Job Boards"]
+        Gemini["Google Gemini API"]
+    end
+
+    subgraph DataPipeline["⚙️ Data Pipeline"]
+        Scrapy["Scrapy Crawler"]
+    end
+
+    subgraph Server["🖥️ Backend Server"]
+        FastAPI["FastAPI"]
+        Auth["JWT Auth"]
+        AIService["AI Controller"]
+    end
+
+    subgraph Database["💾 Storage"]
+        PG[("PostgreSQL")]
+    end
+
+    subgraph Client["👤 User"]
+        UserBrowser["Web Client"]
+    end
+
+    JobSite -->|Crawl| Scrapy
+    Scrapy -->|Insert| PG
+    
+    UserBrowser -->|Request| FastAPI
+    FastAPI -->|Query| PG
+    FastAPI <-->|Inference| Gemini
 ```
 
-### 4. 의존성 설치
-```bash
-pip install -r requirements.txt # (아래 수동 설치 목록 참고)
-# 또는 수동 설치:
-pip install Scrapy BeautifulSoup4 Pandas SQLAlchemy psycopg2-binary
-pip install fastapi "uvicorn[standard]" python-multipart
-pip install "passlib[bcrypt]" python-jose
-pip install google-genai
-```
-
-### 5. 환경 변수 설정
-*   `C:\toy\ai-job-matcher` 디렉토리에 `.env` 파일을 생성합니다.
-*   `GOOGLE_API_KEY`와 `SECRET_KEY`를 설정합니다. `SECRET_KEY`는 JWT 토큰 서명에 사용되는 비밀 키입니다. (예시: `openssl rand -hex 32` 명령어로 생성 가능)
-*   `GOOGLE_API_KEY`는 [Google AI Studio](https://aistudio.google.com/app/apikey)에서 발급받습니다.
-
-    ```ini
-    # .env 파일 예시
-    DATABASE_URL="postgresql://YOUR_DB_USER:YOUR_DB_PASSWORD@YOUR_DB_HOST:5432/YOUR_DB_NAME"
-    GOOGLE_API_KEY="YOUR_GEMINI_API_KEY"
-    SECRET_KEY="YOUR_JWT_SECRET_KEY_HERE"
-    ```
-
-### 6. 데이터베이스 설정
-*   `job_scraper\job_scraper\settings.py` 파일에서 `DATABASE_URL`을 본인의 PostgreSQL 연결 정보로 수정합니다.
-*   `.env` 파일의 `DATABASE_URL`도 동일하게 설정합니다.
-
-### 7. 데이터 수집 (Scrapy 실행)
-*   FastAPI 서버를 실행하기 전에, 먼저 데이터를 수집하여 데이터베이스를 채웁니다.
-```bash
-.array\venv\Scripts\activate
-cd job_scraper
-scrapy crawl python_jobs
-```
-
-### 8. FastAPI 서버 실행
-*   프로젝트 루트 디렉토리(`C:\toy\ai-job-matcher`)에서 다음 명령어를 실행합니다.
-```bash
-.array\venv\Scripts\activate
-uvicorn main:app --reload
-```
-*   서버가 시작되면 `http://127.0.0.1:8000`에서 접근할 수 있습니다.
+---
 
 ## 🌐 API 엔드포인트
+| 태그 | 메서드 | 엔드포인트 | 설명 | 인증 |
+|---|---|---|---|---|
+| Auth | POST | `/users/` | 회원가입 | ❌ |
+| Auth | POST | `/token` | 로그인 (JWT 발급) | ❌ |
+| User | GET | `/users/me/` | 내 정보 조회 | ✅ |
+| Resume | POST | `/users/me/resume` | 이력서 등록 | ✅ |
+| Job | GET | `/jobs/` | 채용 공고 목록 (Paging) | ❌ |
+| AI | GET | `/jobs/{id}/summary` | 공고 3줄 요약 | ✅ |
+| AI | GET | `/jobs/{id}/interview` | 예상 면접 질문 생성 | ✅ |
+| AI | GET | `/users/me/match` | 이력서 기반 공고 추천 | ✅ |
 
-API 문서는 서버 실행 후 `http://127.0.0.1:8000/docs`에서 확인할 수 있습니다.
+---
 
-### 사용자 및 인증
-*   **`POST /users/`**: 새로운 사용자 계정 생성 (회원가입)
-*   **`POST /token`**: 사용자 로그인 및 JWT Access Token 발급
-*   **`GET /users/me/`**: 현재 로그인된 사용자 정보 조회
-*   **`POST /users/me/resume`**: 현재 로그인된 사용자의 이력서 업로드
+## 🚀 설치 및 실행
 
-### 채용 공고
-*   **`GET /jobs/`**: 모든 채용 공고 목록 조회 (페이지네이션 지원)
+### 1. 환경 설정
+```bash
+# 1. 프로젝트 클론
+git clone https://github.com/your-username/ai-job-matcher.git
+cd ai-job-matcher
 
-### AI 서비스 (인증 필요)
-*   **`GET /jobs/{job_id}/summary`**: 특정 채용 공고의 내용을 Gemini AI로 요약
-*   **`GET /jobs/{job_id}/interview`**: 특정 채용 공고를 기반으로 Gemini AI가 면접 질문 생성
-*   **`GET /users/me/match`**: 현재 사용자의 이력서와 가장 잘 맞는 채용 공고 3개를 Gemini AI로 추천
+# 2. 가상환경 생성 및 활성화
+python -m venv venv
+# Windows
+.\venv\Scripts\activate
+# Mac/Linux
+source venv/bin/activate
 
-## 🧪 테스트 방법
+# 3. 의존성 설치
+pip install -r requirements.txt
+```
 
-1.  서버 실행 후 `http://127.0.0.1:8000/docs`에 접속합니다.
-2.  `POST /users/`로 사용자 계정을 생성합니다.
-3.  `POST /token`으로 로그인하여 `access_token`을 발급받습니다.
-4.  페이지 상단의 **`Authorize`** 버튼을 클릭하고, `Bearer YOUR_ACCESS_TOKEN` 형식으로 토큰을 입력하여 인증합니다.
-5.  각 AI 서비스 엔드포인트(`GET /jobs/{job_id}/summary`, `GET /jobs/{job_id}/interview`, `GET /users/me/match`)를 `Try it out` 기능을 통해 테스트합니다.
-    *   `GET /users/me/match`를 테스트하기 전에 `POST /users/me/resume`를 통해 이력서를 먼저 업로드해야 합니다.
+### 2. 환경 변수 (.env) 설정
+프로젝트 루트에 `.env` 파일을 생성하고 아래 내용을 입력하세요.
 
-## 💡 향후 개선 사항
-*   프론트엔드 개발을 통한 사용자 인터페이스 제공
-*   데이터 수집 스케줄링 (Airflow 또는 APScheduler 연동)
-*   클라우드 배포 (AWS, GCP 등)
-*   AI 모델의 프롬프트 엔지니어링 고도화 및 다양한 AI 기능 추가
-*   이력서 및 채용 공고 텍스트 임베딩을 활용한 벡터 검색 기반 매칭 시스템 도입
+```ini
+# Database (PostgreSQL)
+DATABASE_URL="postgresql://user:password@localhost:5432/job_db"
+
+# Security
+SECRET_KEY="your_secret_key_generated_by_openssl"
+ALGORITHM="HS256"
+
+# AI Service
+GOOGLE_API_KEY="your_gemini_api_key"
+```
+
+### 3. 데이터 수집 (Crawling)
+서버 실행 전, 초기 데이터를 수집합니다.
+
+```bash
+cd job_scraper
+scrapy crawl python_jobs
+cd ..
+```
+
+### 4. 서버 실행
+```bash
+uvicorn main:app --reload
+```
+- **Server**: [http://127.0.0.1:8000](http://127.0.0.1:8000)
+- **Docs**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+
+---
+
+## 💡 향후 개선 계획
+- [ ] **Vector Search 도입**: FAISS/Pinecone을 활용한 시맨틱(의미 기반) 검색 구현
+- [ ] **Task Scheduling**: Airflow를 도입하여 매일 새벽 3시 자동 크롤링 파이프라인 구축
+- [ ] **Cloud Deployment**: AWS EC2 + Docker를 활용한 배포 자동화 (CI/CD)
+- [ ] **Frontend**: React 기반의 대시보드 UI 개발
+
+---
+
+## 📜 License
+MIT License
+
+<div align="center">
+
+Made with 💻 & 🤖 by a Future Backend Engineer
+
+</div>
