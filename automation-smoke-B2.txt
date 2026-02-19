@@ -1,0 +1,2 @@
+smoke B2 revalidation timestamp (local): 2026-02-19T17:45:49+09:00
+smoke B2 revalidation timestamp (UTC): 2026-02-19T08:45:49+00:00
