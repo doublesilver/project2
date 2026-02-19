@@ -18,6 +18,8 @@
 - [시스템 아키텍처](#-시스템-아키텍처)
 - [API 엔드포인트](#-api-엔드포인트)
 - [설치 및 실행](#-설치-및-실행)
+- [콘텐츠 허브 MVP (1차)](content-hub/README.md)
+- [README 내부링크 규칙](#readme-internal-link-rules)
 - [향후 개선 계획](#-향후-개선-계획)
 
 ---
@@ -191,6 +193,30 @@ uvicorn main:app --reload
 ```
 - **Server**: [http://127.0.0.1:8000](http://127.0.0.1:8000)
 - **Docs**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+
+---
+
+## 🧩 콘텐츠 허브 MVP (1차)
+
+### 확정 카테고리 구조
+- 허브 루트: [content-hub/README.md](content-hub/README.md)
+- 자동화 카테고리: [content-hub/categories/automation/README.md](content-hub/categories/automation/README.md)
+- 생산성 카테고리: [content-hub/categories/productivity/README.md](content-hub/categories/productivity/README.md)
+- 체크리스트 카테고리: [content-hub/categories/checklist/README.md](content-hub/categories/checklist/README.md)
+
+### 글 템플릿 3종 최종본
+- [자동화 글 템플릿](content-hub/templates/automation-article-template.md)
+- [생산성 글 템플릿](content-hub/templates/productivity-article-template.md)
+- [체크리스트 글 템플릿](content-hub/templates/checklist-article-template.md)
+
+<a id="readme-internal-link-rules"></a>
+
+### README 내부링크 규칙 (예시 5개)
+1. 폴더/파일 링크는 항상 상대경로를 사용합니다. 예: [콘텐츠 허브 루트](content-hub/README.md)
+2. 카테고리 링크는 영문 소문자 slug 폴더를 직접 가리킵니다. 예: [자동화 카테고리](content-hub/categories/automation/README.md)
+3. 템플릿 링크는 `content-hub/templates/` 하위의 고정 파일명을 사용합니다. 예: [체크리스트 템플릿](content-hub/templates/checklist-article-template.md)
+4. 문서 내 특정 섹션 이동은 앵커를 사용합니다. 예: [Hub Link QA Checklist](content-hub/README.md#link-qa-checklist)
+5. 같은 `README.md` 내 이동은 헤더 앵커를 사용합니다. 예: [설치 및 실행](#-설치-및-실행)
 
 ---
 
