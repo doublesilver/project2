@@ -1,0 +1,23 @@
+{
+  "name": "project2-autopost",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "run-once": "tsx src/cli.ts run-once",
+    "run-daily": "tsx src/cli.ts run-daily",
+    "autopilot": "tsx src/cli.ts autopilot"
+  },
+  "dependencies": {
+    "node-cron": "^4.2.1",
+    "rss-parser": "^3.13.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
+  }
+}
