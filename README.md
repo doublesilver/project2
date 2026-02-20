@@ -55,6 +55,19 @@ npm run web:dev
 
 6. Open `http://localhost:3000` (web) and confirm API calls to `http://localhost:3001`.
 
+## Local Admin Console
+
+- URL: `http://localhost:3000/admin`
+- Features:
+  - trigger one auto-post run (`run-once`) from UI
+  - inspect/edit raw markdown
+  - delete posts
+
+Admin API auth behavior:
+
+- If `ADMIN_TOKEN` is set in API env, admin calls require token.
+- If `ADMIN_TOKEN` is empty, admin APIs are local-IP only.
+
 ## Local Commands (Autopost)
 
 ```bash

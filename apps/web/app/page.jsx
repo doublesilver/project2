@@ -24,9 +24,14 @@ export default async function HomePage() {
         <p>
           직장인, 취준생, 학생에게 필요한 이슈를 자동 수집하고, 핵심만 빠르게 정리해 제공합니다.
         </p>
-        <a className="cta" href={serviceAUrl} target="_blank" rel="noreferrer">
-          {serviceAName} 바로가기
-        </a>
+        <div className="hero-actions">
+          <a className="cta" href={serviceAUrl} target="_blank" rel="noreferrer">
+            {serviceAName} 바로가기
+          </a>
+          <Link className="ghost-btn" href="/admin">
+            관리 콘솔
+          </Link>
+        </div>
       </header>
 
       <section className="grid-wrap">

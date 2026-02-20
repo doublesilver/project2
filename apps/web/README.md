@@ -9,6 +9,8 @@ npm install
 npm run dev
 ```
 
+Admin console: `http://localhost:3000/admin`
+
 ## Required env
 
 Copy `.env.example` and set:
