@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import matter from "gray-matter";
 import { execFile } from "node:child_process";
+import { randomBytes, randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -15,6 +16,7 @@ const POSTS_DIR = path.resolve(ROOT_DIR, process.env.POSTS_DIR || "content/posts
 const STATE_FILE = path.resolve(ROOT_DIR, process.env.STATE_FILE || "data/published-state.json");
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
 const ADMIN_TOKEN = String(process.env.ADMIN_TOKEN || "").trim();
+const APP_TIMEZONE = process.env.TIMEZONE || "Asia/Seoul";
 
 function parseAllowedOrigins(raw) {
   if (!raw || raw.trim() === "*") {
@@ -62,6 +64,29 @@ function stripFrontmatterNoise(content) {
 function buildExcerpt(content) {
   const cleaned = stripFrontmatterNoise(content);
   return cleaned.slice(0, 220);
+}
+
+function formatDateKey(date = new Date()) {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: APP_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  });
+  return formatter.format(date);
+}
+
+function slugifyText(value) {
+  return (
+    String(value || "")
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/[^\w\s-가-힣]/g, "")
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .slice(0, 80) || "manual-post"
+  );
 }
 
 function toStateShape(raw) {
@@ -130,6 +155,82 @@ async function loadAllPosts() {
   const posts = await Promise.all(files.map((file) => readPostFromFile(file)));
 
   return posts.sort((a, b) => toDateValue(b.date) - toDateValue(a.date));
+}
+
+function getNextSequenceForDate(files, dateKey) {
+  const prefix = `${dateKey}-`;
+  let maxSeq = 0;
+
+  for (const filePath of files) {
+    const fileName = path.basename(filePath);
+    if (!fileName.startsWith(prefix)) {
+      continue;
+    }
+    const parts = fileName.split("-");
+    if (parts.length < 4) {
+      continue;
+    }
+    const seq = Number(parts[3]);
+    if (Number.isFinite(seq) && seq > maxSeq) {
+      maxSeq = seq;
+    }
+  }
+
+  return maxSeq + 1;
+}
+
+async function createManualPost({ title, topic, category, tags, content }) {
+  const posts = await loadAllPosts();
+  const existingSlugs = new Set(posts.map((post) => post.slug));
+  const baseSlug = slugifyText(title || topic || "manual-post");
+  let slug = baseSlug;
+
+  while (existingSlugs.has(slug)) {
+    slug = `${baseSlug}-${randomBytes(2).toString("hex")}`;
+  }
+
+  const date = new Date();
+  const dateIso = date.toISOString();
+  const dateKey = formatDateKey(date);
+  const files = await listPostFiles();
+  const sequence = getNextSequenceForDate(files, dateKey);
+  const fileName = `${dateKey}-${String(sequence).padStart(2, "0")}-${slug}.md`;
+  const filePath = path.join(POSTS_DIR, fileName);
+
+  const body = matter.stringify(`${String(content || "").trim()}\n`, {
+    title: String(title || slug).trim(),
+    slug,
+    date: dateIso,
+    topic: String(topic || "general").trim(),
+    category: String(category || "manual").trim(),
+    tags: Array.isArray(tags)
+      ? tags.map((tag) => String(tag).trim()).filter(Boolean).slice(0, 12)
+      : [],
+    ai_generated: false
+  });
+
+  await fs.mkdir(POSTS_DIR, { recursive: true });
+  await fs.writeFile(filePath, body, "utf8");
+
+  const state = await loadState();
+  state.posts.push({
+    id: randomUUID(),
+    title: String(title || slug).trim(),
+    slug,
+    topic: String(topic || "general").trim(),
+    filePath: path.join("content/posts", fileName),
+    publishedAt: dateIso,
+    sourceUrls: []
+  });
+  await saveState(state);
+
+  return {
+    slug,
+    fileName,
+    title: String(title || slug).trim(),
+    date: dateIso,
+    topic: String(topic || "general").trim()
+  };
 }
 
 async function findPostBySlug(slug) {
@@ -330,6 +431,58 @@ app.post("/api/admin/generate-once", verifyAdmin, async (_req, res) => {
       message: "Failed to run autopost command.",
       stdout: stdout.trim().split("\n").slice(-30),
       stderr: stderr.trim().split("\n").slice(-30)
+    });
+  }
+});
+
+app.post("/api/admin/posts/manual", verifyAdmin, async (req, res) => {
+  const title = String(req.body?.title || "").trim();
+  const topic = String(req.body?.topic || "").trim();
+  const category = String(req.body?.category || "manual").trim();
+  const rawTags = String(req.body?.tags || "");
+  const content = typeof req.body?.content === "string" ? req.body.content : "";
+
+  if (!title || title.length < 4) {
+    res.status(400).json({ message: "title must be at least 4 characters" });
+    return;
+  }
+  if (!topic || topic.length < 2) {
+    res.status(400).json({ message: "topic must be at least 2 characters" });
+    return;
+  }
+  if (!content.trim() || content.trim().length < 20) {
+    res.status(400).json({ message: "content must be at least 20 characters" });
+    return;
+  }
+  if (content.length > 200_000) {
+    res.status(400).json({ message: "content too large" });
+    return;
+  }
+
+  const tags = rawTags
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter(Boolean)
+    .slice(0, 12);
+
+  try {
+    const created = await createManualPost({
+      title,
+      topic,
+      category,
+      tags,
+      content
+    });
+
+    res.json({
+      ok: true,
+      created
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    res.status(500).json({
+      ok: false,
+      message: `Failed to create manual post: ${message}`
     });
   }
 });

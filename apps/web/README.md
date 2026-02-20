@@ -10,6 +10,9 @@ npm run dev
 ```
 
 Admin console: `http://localhost:3000/admin`
+- Manual post publish
+- One-click auto post run
+- Raw markdown edit/delete
 
 ## Required env
 

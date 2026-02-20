@@ -37,6 +37,11 @@ export default function AdminPage() {
   const [posts, setPosts] = useState([]);
   const [selectedSlug, setSelectedSlug] = useState("");
   const [rawMarkdown, setRawMarkdown] = useState("");
+  const [manualTitle, setManualTitle] = useState("");
+  const [manualTopic, setManualTopic] = useState("");
+  const [manualCategory, setManualCategory] = useState("manual");
+  const [manualTags, setManualTags] = useState("");
+  const [manualContent, setManualContent] = useState("");
   const [statusText, setStatusText] = useState("관리자 콘솔 준비 완료");
   const [isBusy, setIsBusy] = useState(false);
 
@@ -70,6 +75,44 @@ export default function AdminPage() {
       setStatusText(`자동 발행 완료: latest=${data.latestPost?.slug || "none"}`);
     } catch (error) {
       setStatusText(`자동 발행 실패: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  async function handleCreateManual() {
+    if (!manualTitle.trim() || !manualTopic.trim() || !manualContent.trim()) {
+      setStatusText("수동 발행: 제목/토픽/본문을 입력하세요.");
+      return;
+    }
+
+    setIsBusy(true);
+    setStatusText("수동 발행 실행 중...");
+
+    try {
+      const data = await requestJson(`/api/admin/posts/manual`, {
+        method: "POST",
+        token,
+        body: {
+          title: manualTitle,
+          topic: manualTopic,
+          category: manualCategory,
+          tags: manualTags,
+          content: manualContent
+        }
+      });
+
+      await loadPosts();
+      setSelectedSlug(data.created.slug);
+      setRawMarkdown("");
+      setStatusText(`수동 발행 완료: ${data.created.slug}`);
+      setManualTitle("");
+      setManualTopic("");
+      setManualCategory("manual");
+      setManualTags("");
+      setManualContent("");
+    } catch (error) {
+      setStatusText(`수동 발행 실패: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setIsBusy(false);
     }
@@ -178,6 +221,47 @@ export default function AdminPage() {
         </div>
 
         <p className="admin-status">{statusText}</p>
+      </section>
+
+      <section className="admin-create">
+        <h2>수동 게시글 발행</h2>
+        <div className="create-grid">
+          <label>
+            제목
+            <input value={manualTitle} onChange={(event) => setManualTitle(event.target.value)} placeholder="예: 2026 채용 트렌드 요약" />
+          </label>
+          <label>
+            토픽
+            <input value={manualTopic} onChange={(event) => setManualTopic(event.target.value)} placeholder="예: 채용" />
+          </label>
+          <label>
+            카테고리
+            <input value={manualCategory} onChange={(event) => setManualCategory(event.target.value)} placeholder="manual" />
+          </label>
+          <label>
+            태그(쉼표 구분)
+            <input
+              value={manualTags}
+              onChange={(event) => setManualTags(event.target.value)}
+              placeholder="예: 채용,취업,커리어"
+            />
+          </label>
+        </div>
+
+        <label className="create-content">
+          본문(Markdown)
+          <textarea
+            value={manualContent}
+            onChange={(event) => setManualContent(event.target.value)}
+            placeholder="여기에 본문 마크다운을 입력하세요."
+          />
+        </label>
+
+        <div className="editor-actions">
+          <button type="button" onClick={() => void handleCreateManual()} disabled={isBusy}>
+            수동 발행
+          </button>
+        </div>
       </section>
 
       <section className="admin-grid">

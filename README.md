@@ -59,6 +59,7 @@ npm run web:dev
 
 - URL: `http://localhost:3000/admin`
 - Features:
+  - manual post create/publish
   - trigger one auto-post run (`run-once`) from UI
   - inspect/edit raw markdown
   - delete posts
