@@ -1,49 +1,118 @@
-# project2 Autopost Engine
+# project2 (B Community)
 
-Automates trend collection and article generation for repository B (`project2`).
+`project2` is the B-side content community that auto-publishes hot-issue briefs and drives qualified traffic to A service.
 
-## What It Does
+Current mode: local-first development. Deployment can be connected later without changing folder structure.
 
-- Collects fresh items from RSS feeds relevant to workers, job seekers, and students.
-- Extracts trend candidates from repeated topic signals.
-- Generates and publishes markdown posts into `content/posts`.
-- Enforces limits: up to 3 posts/day, with topic cooldown.
-- Persists state in `data/published-state.json` to prevent duplicates.
+## Architecture
 
-## Commands
+- `src/*`: Autopost pipeline (trend collection + post generation)
+- `api/server.js`: Backend API for serving generated posts (Railway target)
+- `apps/web/*`: Next.js frontend (Vercel target)
+- `content/posts/*`: Generated markdown posts
+- `data/published-state.json`: Duplicate/cooldown state
+- `.github/workflows/autopost.yml`: 3 runs/day auto publishing
+
+## Core Flows
+
+1. GitHub Actions runs 3 times/day.
+2. Pipeline fetches trend feeds and writes markdown posts.
+3. Autopost commits to `main`.
+4. Railway serves updated post data via API.
+5. Vercel frontend reads the API and renders new content.
+
+## Local Quick Start
+
+1. Install root dependencies:
+
+```bash
+npm install
+```
+
+2. Install frontend dependencies:
+
+```bash
+npm --prefix apps/web install
+```
+
+3. Generate one sample post locally:
+
+```bash
+npm run run-once
+```
+
+4. Start backend API:
+
+```bash
+npm run api:dev
+```
+
+5. Start frontend in another terminal:
+
+```bash
+npm run web:dev
+```
+
+6. Open `http://localhost:3000` (web) and confirm API calls to `http://localhost:3001`.
+
+## Local Commands (Autopost)
 
 ```bash
 npm install
 npm run run-once   # force-generate 1 post (ignores daily cap)
 npm run run-daily  # generate based on daily limits
-npm run autopilot  # start in-process scheduler
+npm run autopilot  # run in-process scheduler
 npm run typecheck
+npm run build
 ```
 
-## Schedule (3/day)
+## Local Commands (API)
 
-GitHub Actions workflow `.github/workflows/autopost.yml` runs at:
+```bash
+npm run api:start
+npm run api:dev
+```
 
-- 00:00 UTC
-- 04:00 UTC
-- 10:00 UTC
+API endpoints:
 
-This corresponds to 09:00, 13:00, 19:00 in `Asia/Seoul`.
+- `GET /healthz`
+- `GET /api/posts?limit=20&page=1`
+- `GET /api/posts/:slug`
+- `GET /api/meta`
 
-## Environment Variables
+## Frontend (Vercel-ready)
 
-Copy `.env.example` and set values as needed.
+Frontend app lives at `apps/web`.
 
-- `SERVICE_A_NAME`, `SERVICE_A_URL`: CTA target promoted in each generated post.
-- `POSTS_PER_DAY`: default `3`.
-- `POSTS_PER_RUN`: default `1`.
-- `SOURCE_LIMIT`: feed items fetched each run.
-- `TOPIC_COOLDOWN_HOURS`: topic reuse cooldown window.
-- `TIMEZONE`, `CRON_EXPRESSIONS`: scheduler settings.
-- `FEED_SOURCES`: optional custom feed list (`name|url,name|url`).
+```bash
+cd apps/web
+npm install
+npm run dev
+```
 
-## Notes
+Required env vars (`apps/web/.env.example`):
 
-- This implementation focuses on reliable automation and duplicate control.
-- Generated posts are markdown drafts optimized for publish pipelines.
-- You can replace template generation in `src/postWriter.ts` with an LLM API step later.
+- `NEXT_PUBLIC_API_BASE_URL`
+- `NEXT_PUBLIC_SERVICE_A_NAME`
+- `NEXT_PUBLIC_SERVICE_A_URL`
+
+## Autopost Schedule (3/day)
+
+Workflow: `.github/workflows/autopost.yml`
+
+- `00:00 UTC`
+- `04:00 UTC`
+- `10:00 UTC`
+
+This equals `09:00`, `13:00`, `19:00` in `Asia/Seoul`.
+
+## Required Repo Variables
+
+For autopost CTA insertion:
+
+- `SERVICE_A_NAME`
+- `SERVICE_A_URL`
+
+## Deployment Guide
+
+Detailed setup: `docs/deployment/vercel-railway.md`
