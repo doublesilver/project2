@@ -66,6 +66,28 @@ function buildExcerpt(content) {
   return cleaned.slice(0, 220);
 }
 
+function normalizeText(value) {
+  return String(value || "").toLowerCase().trim();
+}
+
+function matchesKeyword(post, query) {
+  if (!query) {
+    return true;
+  }
+  const haystack = [
+    post.title,
+    post.topic,
+    post.category,
+    Array.isArray(post.tags) ? post.tags.join(" ") : "",
+    post.excerpt,
+    post.content
+  ]
+    .map((item) => normalizeText(item))
+    .join(" ");
+
+  return haystack.includes(query);
+}
+
 function formatDateKey(date = new Date()) {
   const formatter = new Intl.DateTimeFormat("en-CA", {
     timeZone: APP_TIMEZONE,
@@ -335,10 +357,24 @@ app.get("/healthz", (_req, res) => {
 app.get("/api/posts", async (req, res) => {
   const limit = Math.min(Math.max(Number(req.query.limit || 20), 1), 100);
   const page = Math.max(Number(req.query.page || 1), 1);
+  const keywordQuery = normalizeText(req.query.q);
+  const topicQuery = normalizeText(req.query.topic);
 
   const posts = await loadAllPosts();
+  const topics = [...new Set(posts.map((post) => String(post.topic || "").trim()).filter(Boolean))].sort((a, b) =>
+    a.localeCompare(b, "ko")
+  );
+
+  const filtered = posts.filter((post) => {
+    const topicMatched = !topicQuery || normalizeText(post.topic) === topicQuery;
+    if (!topicMatched) {
+      return false;
+    }
+    return matchesKeyword(post, keywordQuery);
+  });
+
   const offset = (page - 1) * limit;
-  const items = posts.slice(offset, offset + limit).map((post) => ({
+  const items = filtered.slice(offset, offset + limit).map((post) => ({
     slug: post.slug,
     title: post.title,
     date: post.date,
@@ -353,8 +389,13 @@ app.get("/api/posts", async (req, res) => {
     items,
     page,
     limit,
-    total: posts.length,
-    hasNext: offset + items.length < posts.length
+    total: filtered.length,
+    hasNext: offset + items.length < filtered.length,
+    query: {
+      q: keywordQuery,
+      topic: topicQuery
+    },
+    topics
   });
 });
 

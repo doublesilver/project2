@@ -21,6 +21,18 @@ Current mode: local-first development. Deployment can be connected later without
 4. Railway serves updated post data via API.
 5. Vercel frontend reads the API and renders new content.
 
+## Public Discovery UX
+
+- keyword search (`q`)
+- topic filter (`topic`)
+- pagination (`page`)
+
+API usage example:
+
+```bash
+GET /api/posts?limit=18&page=1&q=채용&topic=채용
+```
+
 ## Local Quick Start
 
 1. Install root dependencies:
